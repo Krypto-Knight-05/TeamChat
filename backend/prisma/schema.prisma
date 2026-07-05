@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  email        String        @unique
+  password     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  adminOfTeams Team[]        @relation("TeamAdmin")
+  memberships  TeamMember[]
+  messages     Message[]
+  joinRequests JoinRequest[]
+}
+
+model Team {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  groupId     String        @unique // 8-char shareable code
+  adminId     String        @db.Uuid
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  admin        User          @relation("TeamAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  members      TeamMember[]
+  messages     Message[]
+  joinRequests JoinRequest[]
+
+  @@index([adminId])
+  @@index([groupId])
+}
+
+model TeamMember {
+  id       String   @id @default(uuid()) @db.Uuid
+  teamId   String   @db.Uuid
+  userId   String   @db.Uuid
+  joinedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model JoinRequest {
+  id        String            @id @default(uuid()) @db.Uuid
+  teamId    String            @db.Uuid
+  userId    String            @db.Uuid
+  status    JoinRequestStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId, status])
+  @@index([userId])
+}
+
+enum JoinRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Message {
+  id        String   @id @default(uuid()) @db.Uuid
+  teamId    String   @db.Uuid
+  senderId  String   @db.Uuid
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, createdAt])
+  @@index([senderId])
+}
