@@ -204,6 +204,11 @@ const Dashboard = () => {
                   <div className="team-name">{team.name}</div>
                   <div className="team-meta">
                     {team._count?.members ?? 0} member{team._count?.members !== 1 ? 's' : ''}
+                    {isAdmin(team) && (
+                      <span style={{ display: 'block', fontFamily: 'Courier New, monospace', fontWeight: 600, color: 'var(--accent)', letterSpacing: '0.05em' }}>
+                        {team.groupId}
+                      </span>
+                    )}
                   </div>
                 </div>
                 {isAdmin(team) && (
@@ -261,6 +266,21 @@ const Dashboard = () => {
                     {isAdmin(activeTeam) && ' · You are the admin'}
                   </div>
                 </div>
+                {isAdmin(activeTeam) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '5px 10px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Invite code</span>
+                    <span style={{ fontFamily: 'Courier New, monospace', fontSize: '13px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em' }}>{activeTeam.groupId}</span>
+                    <button
+                      id="copy-invite-code-btn"
+                      onClick={() => {
+                        navigator.clipboard.writeText(activeTeam.groupId);
+                        showNotif('Group ID copied to clipboard!');
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', padding: '0', color: 'var(--text-muted)' }}
+                      title="Copy Group ID"
+                    >⎘</button>
+                  </div>
+                )}
                 <span
                   style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '5px' }}
                 >
